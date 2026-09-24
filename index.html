@@ -9,9 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#cfe3a8;          /* overworld-gras */
-  --bg-tile:#bcd690;
-  --ink:#1d2340;
+  --bg:#221a3d;          /* kerker bij nacht, altijd donker */
+  --bg-tile:#2c2350;
+  --ink:#e9e4ff;
   --win-top:#3a54c9;     /* SNES-venster */
   --win-bot:#141d78;
   --win-edge:#f3f1e6;
@@ -19,19 +19,8 @@
   --gold:#f5c542;
   --hp:#e0474c;
   --muted:#b9c2ff;
-  --path:#8a6a3b;
-  color-scheme:light dark;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#221a3d;         /* kerker bij nacht */
-    --bg-tile:#2c2350;
-    --ink:#e9e4ff;
-    --path:#c9a15a;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#221a3d; --bg-tile:#2c2350; --ink:#e9e4ff; --path:#c9a15a;
+  --path:#c9a15a;
+  color-scheme:dark;
 }
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);scroll-behavior:smooth}
@@ -89,20 +78,20 @@ main{max-width:760px;margin:0 auto;padding:0 16px 80px}
 .inv .leg{border-color:var(--gold)}
 
 /* Wereldkaart */
-.map{position:relative;margin:48px 0;padding:10px 0}
+.map{position:relative;margin:48px 0;padding:24px 16px 14px}
 .map h2{font-family:"Press Start 2P",monospace;font-size:14px;text-align:center;margin:0 0 26px}
 .route{list-style:none;margin:0 auto;padding:0;max-width:420px;position:relative}
-.route::before{content:"";position:absolute;left:37px;top:30px;bottom:30px;border-left:8px dotted var(--path)}
+.route::before{content:"";position:absolute;left:37px;top:30px;bottom:30px;border-left:8px dotted var(--gold)}
 .route li{position:relative;margin:0 0 14px}
-.node{display:flex;align-items:center;gap:16px;text-decoration:none;color:var(--ink);padding:4px}
-.node .dot{width:82px;height:62px;flex:none;display:grid;place-items:center;background:var(--win-bot);border:4px solid var(--win-edge);border-radius:6px;position:relative}
+.node{display:flex;align-items:center;gap:16px;text-decoration:none;color:var(--win-text);padding:4px}
+.node .dot{width:82px;height:62px;flex:none;display:grid;place-items:center;background:#0a0f45;border:4px solid var(--win-edge);border-radius:6px;position:relative}
 .node .dot svg{height:46px;width:auto}
 .node .dot .check{position:absolute;right:-12px;top:-12px;background:var(--gold);color:var(--win-bot);font-family:"Press Start 2P",monospace;font-size:10px;padding:4px 5px;border:3px solid var(--win-bot);display:none}
 .node.done .dot .check{display:block}
 .node .name{font-size:24px}
-.node .name small{display:block;font-size:19px;opacity:.75}
+.node .name small{display:block;font-size:19px;color:var(--muted)}
 .rest{padding-left:26px;font-size:21px;opacity:.85}
-.rest .tent{display:inline-block;width:30px;text-align:center;background:var(--bg);position:relative}
+.rest .tent{display:inline-block;width:30px;text-align:center;background:#0a0f45;border:3px solid var(--win-edge);border-radius:4px;position:relative}
 
 /* Quest */
 .quest header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px}
@@ -182,7 +171,7 @@ main{max-width:760px;margin:0 auto;padding:0 16px 80px}
   <ul class="inv" id="inv"></ul>
 </section>
 
-<nav class="map" aria-labelledby="maptitle">
+<nav class="win map" aria-labelledby="maptitle">
   <h2 id="maptitle">Wereldkaart</h2>
   <ol class="route" id="route"></ol>
 </nav>
@@ -208,9 +197,8 @@ main{max-width:760px;margin:0 auto;padding:0 16px 80px}
 
 <section class="win ending" id="ending" hidden>
   <h2>The End?</h2>
-  <p>Alle zes relieken zijn verslagen. De drakeneieren staan leeg en glanzend op de schouw, de Middernachtkoning heeft zijn kroon afgedaan.</p>
-  <p>Maar een ware beer geek weet: na de laatste baas komt altijd een nieuwe swap. Jij bent nu de koerier.</p>
-  <p class="credits">Stuur je afzender een bericht met je favoriete kerker, en vergeet je check-ins niet.</p>
+  <p>Alle zes relieken zijn verslagen. De drakeneieren staan leeg en glanzend op de schouw, de Middernachtkoning heeft zijn kroon afgedaan. Stuur je afzender een bericht met je favoriete kerker, en vergeet je check-ins niet!</p>
+  <p class="credits pixel" style="font-size:13px;color:var(--gold);margin-top:22px">Proost, Guillaume.</p>
 </section>
 
 <section class="win sources">
@@ -218,7 +206,7 @@ main{max-width:760px;margin:0 auto;padding:0 16px 80px}
   <p>De notities in deze questline zijn in eigen woorden samengevat uit brouwerij- en winkelbeschrijvingen en proefnotities van drinkers:</p>
   <ul>
     <li>Raspberry Velvet: <a href="https://tavour.com/b/bistro-raspberry-velvet-b578805">Tavour</a></li>
-    <li>Oud Bruin: Untappd-check-ins van Wagenings Hout Bruin, de oud bruin van de Stadsbrouwerij</li>
+    <li>Wagenings Hout Bruin: Untappd-check-ins van drinkers</li>
     <li>ROTT.CRUMBLE: <a href="https://untappd.com/b/rott-brewing-company-rott-crumble/6843434">Untappd</a> en <a href="https://hetbiermeisje.com/online-bierwinkel/rott-brewing-company-rott-crumble/">Het Biermeisje</a></li>
     <li>Gulden Draak Calvados: <a href="https://www.vinmonopolet.no/_/p/11659601">Vinmonopolet</a> en <a href="https://beermonthclub.com/brouwerij-van-steenberge-gulden-draak-calvados">Beer of the Month Club</a></li>
     <li>La Trappe Oak Aged Batch 43: <a href="https://www.hetbiermoment.nl/a-72077386/koningshoeven/koningshoeven-la-trappe-batch-43-quadrupel-oak-aged-37-5cl/">Hetbiermoment</a> en <a href="https://www.hopsandhopes.nl/bieren/la-trappe-quadrupel-oak-aged-batch-43-bierbrouwerij-de-koningshoeven">Hops &amp; Hopes</a></li>
@@ -270,9 +258,9 @@ const Q = [
   {
     id:"oudbruin", kind:"bottle", pal:{o:"#1d120a",c:"#7a3b1f",b:"#5a2f17",h:"#8f5a33",l:"#e9d6a8"},
     ch:"Hoofdstuk 2", place:"De Eikenhouten Hut op de Wageningse Eng", foe:"De Houtbruine Heks",
-    item:"Stadsbrouwerij Wageningen — Oud Bruin",
-    stats:[["Klasse","Vlaams oud bruin"],["Herkomst","Wageningen, met graan van eigen bodem"],["Temperatuur","Keldertemperatuur"]],
-    lore:"Tussen de gerstvelden van de Wageningse Eng, waar de brouwerij haar eigen graan laat groeien, staat een hut van oud eikenhout. De heks die er woont laat haar brouwsels geduldig rijpen in hout tot zoet en zuur elkaar in evenwicht houden, precies zoals de Vlamingen het ooit deden.",
+    item:"Stadsbrouwerij Wageningen — Wagenings Hout Bruin",
+    stats:[["Klasse","Vlaams oud bruin, gerijpt op houten vaten"],["Kracht","10%"],["Herkomst","Wageningen, met graan van eigen bodem"],["Temperatuur","Keldertemperatuur"]],
+    lore:"Tussen de gerstvelden van de Wageningse Eng, waar de brouwerij haar eigen graan laat groeien, staat een hut van oud eikenhout. Achterin liggen vaten, en daarin laat de heks haar brouwsel geduldig rijpen tot zoet en zuur elkaar in evenwicht houden, precies zoals de Vlamingen het ooit deden. Laat je niet misleiden door haar zure glimlach: met tien procent slaat deze heks hard.",
     notes:["Geur: donker bier met hout, vanille en rozijnen, en heel in de verte appel","Smaak: zoetzuur, met karamel, eikenhout en een verrassende zweem drop","Tweede laag: rood fruit en kers, fris en licht zurig","Karakter: gelaagd en subtiel, geen zuurbom maar een fluisterende heks"],
     task:"De heks heeft drop in haar ketel verstopt. Wie hem als eerste vindt, mag hem hardop benoemen en krijgt de eer. Houd ook je neus open voor de Appelrelikwie en het Kersenpad.",
     reward:"Vaardigheid: Zuurweerstand II",
