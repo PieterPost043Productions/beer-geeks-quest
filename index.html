@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>De Zes Relieken van de Kelder — Beer Geeks Swap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#cfe3a8;          /* overworld-gras */
+  --bg-tile:#bcd690;
+  --ink:#1d2340;
+  --win-top:#3a54c9;     /* SNES-venster */
+  --win-bot:#141d78;
+  --win-edge:#f3f1e6;
+  --win-text:#f3f1e6;
+  --gold:#f5c542;
+  --hp:#e0474c;
+  --muted:#b9c2ff;
+  --path:#8a6a3b;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#221a3d;         /* kerker bij nacht */
+    --bg-tile:#2c2350;
+    --ink:#e9e4ff;
+    --path:#c9a15a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#221a3d; --bg-tile:#2c2350; --ink:#e9e4ff; --path:#c9a15a;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"VT323","Courier New",monospace;font-size:23px;line-height:1.3;
+  background-image:
+    linear-gradient(45deg,var(--bg-tile) 25%,transparent 25%,transparent 75%,var(--bg-tile) 75%),
+    linear-gradient(45deg,var(--bg-tile) 25%,transparent 25%,transparent 75%,var(--bg-tile) 75%);
+  background-size:32px 32px;background-position:0 0,16px 16px;
+}
+img,svg{max-width:100%}
+.pixel{font-family:"Press Start 2P","Courier New",monospace;line-height:1.6}
+
+/* HUD */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;
+  background:linear-gradient(var(--win-top),var(--win-bot));color:var(--win-text);
+  border-bottom:4px solid var(--win-edge);padding:8px 14px;display:flex;gap:14px;align-items:center}
+.hud .lvl{font-size:10px;white-space:nowrap}
+.hud .bar{flex:1;height:14px;border:3px solid var(--win-edge);background:#0a0f45;position:relative}
+.hud .fill{height:100%;width:0;background:var(--gold);transition:width .4s steps(8)}
+.hud .xp{font-size:10px;white-space:nowrap}
+
+main{max-width:760px;margin:0 auto;padding:0 16px 80px}
+
+/* Titelscherm */
+.title{min-height:calc(100vh - 60px);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 0}
+.title .small{font-size:11px;letter-spacing:.05em;margin:0 0 22px}
+.title h1{font-family:"Press Start 2P",monospace;font-size:clamp(22px,6vw,44px);line-height:1.35;margin:0 0 10px;
+  color:var(--gold);text-shadow:4px 4px 0 var(--win-bot),-2px -2px 0 var(--ink)}
+.title .sub{font-size:26px;margin:6px 0 30px}
+.sprites{display:flex;gap:10px;align-items:flex-end;justify-content:center;flex-wrap:wrap;margin-bottom:34px}
+.sprites svg{height:72px;width:auto}
+.start{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--ink);background:none;border:none;cursor:pointer;padding:12px 18px}
+.start span{display:inline-block;margin-right:10px}
+@media (prefers-reduced-motion: no-preference){ .start{animation:blink 1.1s steps(2) infinite} }
+@keyframes blink{50%{opacity:0}}
+
+/* Vensters */
+.win{background:linear-gradient(var(--win-top),var(--win-bot));color:var(--win-text);
+  border:4px solid var(--win-edge);border-radius:8px;box-shadow:0 0 0 4px var(--win-bot),6px 8px 0 4px rgba(0,0,0,.25);
+  padding:22px 22px 20px;margin:40px 0}
+.win h2{font-family:"Press Start 2P",monospace;font-size:15px;line-height:1.6;margin:0 0 14px;color:var(--gold)}
+.win h3{font-family:"Press Start 2P",monospace;font-size:11px;margin:20px 0 8px;color:var(--muted)}
+.win p{margin:0 0 12px;max-width:62ch}
+.speaker{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--muted);margin-bottom:10px}
+
+/* Inventaris */
+.inv{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.inv li{display:flex;gap:10px;align-items:center;border:2px solid rgba(243,241,230,.35);padding:8px}
+.inv svg{height:44px;width:auto;flex:none}
+.inv b{font-weight:normal;color:var(--gold)}
+.inv .leg{border-color:var(--gold)}
+
+/* Wereldkaart */
+.map{position:relative;margin:48px 0;padding:10px 0}
+.map h2{font-family:"Press Start 2P",monospace;font-size:14px;text-align:center;margin:0 0 26px}
+.route{list-style:none;margin:0 auto;padding:0;max-width:420px;position:relative}
+.route::before{content:"";position:absolute;left:37px;top:30px;bottom:30px;border-left:8px dotted var(--path)}
+.route li{position:relative;margin:0 0 14px}
+.node{display:flex;align-items:center;gap:16px;text-decoration:none;color:var(--ink);padding:4px}
+.node .dot{width:82px;height:62px;flex:none;display:grid;place-items:center;background:var(--win-bot);border:4px solid var(--win-edge);border-radius:6px;position:relative}
+.node .dot svg{height:46px;width:auto}
+.node .dot .check{position:absolute;right:-12px;top:-12px;background:var(--gold);color:var(--win-bot);font-family:"Press Start 2P",monospace;font-size:10px;padding:4px 5px;border:3px solid var(--win-bot);display:none}
+.node.done .dot .check{display:block}
+.node .name{font-size:24px}
+.node .name small{display:block;font-size:19px;opacity:.75}
+.rest{padding-left:26px;font-size:21px;opacity:.85}
+.rest .tent{display:inline-block;width:30px;text-align:center;background:var(--bg);position:relative}
+
+/* Quest */
+.quest header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px}
+.quest header svg{height:92px;width:auto;flex:none}
+.quest .ch{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--muted);margin:0 0 8px}
+.quest h2{margin-bottom:6px}
+.quest .item{font-size:22px;margin:0}
+.stats{display:grid;grid-template-columns:auto 1fr;gap:2px 16px;margin:14px 0 4px;font-size:21px}
+.stats dt{color:var(--muted)}
+.stats dd{margin:0}
+.notes{margin:0;padding:0;list-style:none}
+.notes li{padding-left:24px;position:relative;margin-bottom:6px}
+.notes li::before{content:"▸";position:absolute;left:4px;color:var(--gold)}
+.task{border:3px dashed var(--gold);padding:10px 12px;margin:16px 0 14px}
+.task strong{font-weight:normal;color:var(--gold)}
+.boss .win-hp{height:12px;border:3px solid var(--win-edge);background:#0a0f45;margin:6px 0 12px}
+.boss .win-hp i{display:block;height:100%;background:var(--hp);width:100%;transition:width .5s steps(10)}
+.boss.defeated .win-hp i{width:0}
+
+.btn{font-family:"Press Start 2P",monospace;font-size:11px;line-height:1.5;
+  background:var(--win-edge);color:var(--win-bot);border:none;padding:12px 14px;cursor:pointer;box-shadow:4px 4px 0 #000}
+.btn[aria-pressed="true"]{background:var(--gold)}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #000}
+:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
+.reward{font-size:20px;opacity:.85;margin-left:12px}
+
+.side ul{margin:0;padding:0;list-style:none}
+.side li{margin:0 0 8px}
+.side label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.side input{width:22px;height:22px;accent-color:var(--gold);margin-top:3px;flex:none}
+
+.ending{text-align:center}
+.ending .credits{font-size:22px}
+.sources{font-size:19px;opacity:.85}
+.sources ul{padding-left:20px;margin:6px 0 0}
+.sources a{color:var(--muted)}
+.reset{background:none;border:2px solid var(--win-edge);color:var(--win-text);font-family:"VT323",monospace;font-size:19px;padding:4px 10px;cursor:pointer;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--win-bot);color:var(--gold);border:4px solid var(--win-edge);font-family:"Press Start 2P",monospace;font-size:11px;
+  padding:12px 16px;z-index:20;display:none;max-width:90vw;text-align:center}
+.toast.show{display:block}
+@media (max-width:520px){
+  body{font-size:21px}
+  .win{padding:18px 14px 16px}
+  .quest header svg{height:70px}
+  .hud .lvl{font-size:8px}.hud .xp{font-size:8px}
+}
+</style>
+</head>
+<body>
+
+<div class="hud" role="status" aria-live="polite">
+  <span class="lvl pixel" id="lvl">LV1 Dorstige Reiziger</span>
+  <div class="bar" aria-hidden="true"><div class="fill" id="fill"></div></div>
+  <span class="xp pixel" id="xp">0/800 XP</span>
+</div>
+
+<main>
+
+<section class="title">
+  <p class="small pixel">Beer Geeks Swap presenteert</p>
+  <h1>De Zes Relieken van de Kelder</h1>
+  <p class="sub">Een questline in zes kerkers en één drakennest</p>
+  <div class="sprites" id="titleSprites" aria-hidden="true"></div>
+  <a class="start" href="#proloog"><span aria-hidden="true">▶</span>Druk op start</a>
+</section>
+
+<section class="win" id="proloog">
+  <p class="speaker">Verteller</p>
+  <p>Een koerier klopt aan. In zijn armen draagt hij een kist, zwaar van glas en belofte. Op het deksel staat in kriebelige runen: <em>Beer Geeks Swap</em>.</p>
+  <p>Jij bent door de Grote Loting uitverkoren. In de kist liggen zes relieken, en elk reliek wordt bewaakt door een wezen dat maar op één manier te verslaan is: door het te proeven.</p>
+  <p>Neem je tijd, held. Wie alle zes in één nacht probeert te verslaan, wordt wakker in het Dal van de Spijt. De kaart heeft rustpunten. Gebruik ze.</p>
+</section>
+
+<section class="win">
+  <h2>Inventaris</h2>
+  <ul class="inv" id="inv"></ul>
+</section>
+
+<nav class="map" aria-labelledby="maptitle">
+  <h2 id="maptitle">Wereldkaart</h2>
+  <ol class="route" id="route"></ol>
+</nav>
+
+<div id="quests"></div>
+
+<section class="win side" id="side">
+  <h2>Zijmissies</h2>
+  <p>Sommige smaken reizen door meerdere kerkers. Vind ze onderweg voor extra XP.</p>
+  <h3>De Appelrelikwie</h3>
+  <ul>
+    <li><label><input type="checkbox" data-side="appel1"> Een vleugje appel in het zuur van de Houtbruine Heks</label></li>
+    <li><label><input type="checkbox" data-side="appel2"> Oma's appeltaart in de ROTT.CRUMBLE</label></li>
+    <li><label><input type="checkbox" data-side="appel3"> Calvados-appelbrandewijn in de adem van de Gulden Draak</label></li>
+  </ul>
+  <h3>Het Kersenpad</h3>
+  <ul>
+    <li><label><input type="checkbox" data-side="kers1"> Kers in het eikenhout van de Oud Bruin</label></li>
+    <li><label><input type="checkbox" data-side="kers2"> Rood fruit onder de karamel van de Crumble</label></li>
+    <li><label><input type="checkbox" data-side="kers3"> Kers tussen leer en tabak bij de Middernachtkoning</label></li>
+  </ul>
+</section>
+
+<section class="win ending" id="ending" hidden>
+  <h2>The End?</h2>
+  <p>Alle zes relieken zijn verslagen. De drakeneieren staan leeg en glanzend op de schouw, de Middernachtkoning heeft zijn kroon afgedaan.</p>
+  <p>Maar een ware beer geek weet: na de laatste baas komt altijd een nieuwe swap. Jij bent nu de koerier.</p>
+  <p class="credits">Stuur je afzender een bericht met je favoriete kerker, en vergeet je check-ins niet.</p>
+</section>
+
+<section class="win sources">
+  <h2>Bronnen van de proefnotities</h2>
+  <p>De notities in deze questline zijn in eigen woorden samengevat uit brouwerij- en winkelbeschrijvingen en proefnotities van drinkers:</p>
+  <ul>
+    <li>Raspberry Velvet: <a href="https://tavour.com/b/bistro-raspberry-velvet-b578805">Tavour</a></li>
+    <li>Oud Bruin: Untappd-check-ins van Wagenings Hout Bruin, de oud bruin van de Stadsbrouwerij</li>
+    <li>ROTT.CRUMBLE: <a href="https://untappd.com/b/rott-brewing-company-rott-crumble/6843434">Untappd</a> en <a href="https://hetbiermeisje.com/online-bierwinkel/rott-brewing-company-rott-crumble/">Het Biermeisje</a></li>
+    <li>Gulden Draak Calvados: <a href="https://www.vinmonopolet.no/_/p/11659601">Vinmonopolet</a> en <a href="https://beermonthclub.com/brouwerij-van-steenberge-gulden-draak-calvados">Beer of the Month Club</a></li>
+    <li>La Trappe Oak Aged Batch 43: <a href="https://www.hetbiermoment.nl/a-72077386/koningshoeven/koningshoeven-la-trappe-batch-43-quadrupel-oak-aged-37-5cl/">Hetbiermoment</a> en <a href="https://www.hopsandhopes.nl/bieren/la-trappe-quadrupel-oak-aged-batch-43-bierbrouwerij-de-koningshoeven">Hops &amp; Hopes</a></li>
+    <li>Bourbon County Brand Stout 2018: <a href="https://www.danmurphys.com.au/product/DM_ER_1000007667_GIBCS18/goose-island-bourbon-county-stout-2018">Goose Island-productomschrijving</a> en <a href="https://beertasting.com/en/beers/goose-bourbon-county-brand-stout-2018">Beertasting</a></li>
+  </ul>
+  <button class="reset" id="reset" type="button">Nieuw spel starten</button>
+</section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="assertive"></div>
+
+<script>
+/* ---------- Pixel-sprites ---------- */
+const MAPS = {
+  bottle:[
+    "....oooo....","....occo....","....occo....","....obbo....","....obbo....",
+    "...obbbbo...","..obbbbbbo..",".obhbbbbbbo.",".obhbbbbbbo.",".ollllllllo.",
+    ".ollllllllo.",".ollllllllo.",".obhbbbbbbo.",".obhbbbbbbo.",".obbbbbbbbo.",
+    ".obbbbbbbbo.","..oooooooo.."],
+  can:[
+    "..oooooo..",".occcccco.","obbbbbbbbo","obhbbbbbbo","ollllllllo","ollllllllo",
+    "ollllllllo","ollllllllo","obhbbbbbbo","obbbbbbbbo",".occcccco.","..oooooo.."],
+  egg:[
+    "...oooo...","..obbbbo..",".obhbbsbo.",".obhbbbbo.","obbbsbbbbo","obbbbbbsbo",
+    "obsbbbbbbo","obbbbbsbbo",".obbbbbbo.",".obbbbbbo.","..oooooo.."]
+};
+function sprite(kind, pal, label){
+  const m = MAPS[kind], w = m[0].length, h = m.length;
+  let r = "";
+  m.forEach((row,y)=>[...row].forEach((c,x)=>{
+    if(c!=="." && pal[c]) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${pal[c]}"/>`;
+  }));
+  return `<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" role="img" aria-label="${label}">${r}</svg>`;
+}
+
+/* ---------- Data ---------- */
+const Q = [
+  {
+    id:"velvet", kind:"can", pal:{o:"#2a0e1a",c:"#c9c9d6",b:"#b3123f",h:"#f06a8a",l:"#f7e7ec"},
+    ch:"Hoofdstuk 1", place:"Het Fluwelen Frambozenwoud", foe:"De Framboosfee",
+    item:"Energy City Brewing — Bistro Raspberry Velvet",
+    stats:[["Klasse","Fruited Berliner Weisse (smoothie sour)"],["Kracht","6,5%"],["Herkomst","Batavia, Illinois"],["Temperatuur","Goed gekoeld"]],
+    lore:"Diep in het woud woont een fee die zweert dat taart drinkbaar is. Ze nam een zachte Berliner Weisse en propte hem na de gisting vol met frambozen, chocolade en vanille, met frambozen-red-velvet-taart als voorbeeld.",
+    notes:["Geur: heldere, jammige bramen- en frambozentonen","Smaak: frambozenjam over een frisse, licht zure en biscuitachtige basis, met donkere chocolade erdoorheen geweven","Afdronk: zachte vanille, als een laagje roomkaasglazuur op de taart","Mondgevoel: dik en smeuïg, eerder smoothie dan limonade"],
+    task:"Proef de eerste slok zonder na te denken en roep hardop: taart of bier? Beide antwoorden zijn goed. Daarna mag je zoeken naar de chocolade onder de framboos.",
+    reward:"Vaardigheid: Zuurweerstand I"
+  },
+  {
+    id:"oudbruin", kind:"bottle", pal:{o:"#1d120a",c:"#7a3b1f",b:"#5a2f17",h:"#8f5a33",l:"#e9d6a8"},
+    ch:"Hoofdstuk 2", place:"De Eikenhouten Hut op de Wageningse Eng", foe:"De Houtbruine Heks",
+    item:"Stadsbrouwerij Wageningen — Oud Bruin",
+    stats:[["Klasse","Vlaams oud bruin"],["Herkomst","Wageningen, met graan van eigen bodem"],["Temperatuur","Keldertemperatuur"]],
+    lore:"Tussen de gerstvelden van de Wageningse Eng, waar de brouwerij haar eigen graan laat groeien, staat een hut van oud eikenhout. De heks die er woont laat haar brouwsels geduldig rijpen in hout tot zoet en zuur elkaar in evenwicht houden, precies zoals de Vlamingen het ooit deden.",
+    notes:["Geur: donker bier met hout, vanille en rozijnen, en heel in de verte appel","Smaak: zoetzuur, met karamel, eikenhout en een verrassende zweem drop","Tweede laag: rood fruit en kers, fris en licht zurig","Karakter: gelaagd en subtiel, geen zuurbom maar een fluisterende heks"],
+    task:"De heks heeft drop in haar ketel verstopt. Wie hem als eerste vindt, mag hem hardop benoemen en krijgt de eer. Houd ook je neus open voor de Appelrelikwie en het Kersenpad.",
+    reward:"Vaardigheid: Zuurweerstand II",
+    rest:"Rustpunt: sla je spel op. Morgen wacht Oma."
+  },
+  {
+    id:"crumble", kind:"can", pal:{o:"#2a1a08",c:"#d9d2c0",b:"#c77b2a",h:"#f0b464",l:"#fbf1d9"},
+    ch:"Hoofdstuk 3", place:"Oma's Taartenburcht aan de Maas", foe:"Oma Crumble",
+    item:"ROTT. Brewing Company — ROTT.CRUMBLE",
+    stats:[["Klasse","Grandma's Apple Pie Pastry Barleywine"],["Kracht","10%"],["Bitterheid","40 IBU"],["Herkomst","Rotterdam"],["Strijdkreet","“All crumble. No compromise.”"]],
+    lore:"In een burcht aan de Maas bakt een oma die geen compromissen kent. Haar appeltaart werd een barleywine van tien procent. Onderschat haar niet: ze ziet eruit als een lief taartje en slaat als een deegroller.",
+    notes:["Uiterlijk: helder amber met fijn, bruinig schuim","Geur: zoetig, biscuit en een tikje amandel","Smaak: plakkerige karamel, appel en vanille, met rood fruit en kers eronder","Na een tijdje in het glas: kaneel en rozijnen komen tevoorschijn","Mondgevoel: vol en romig, warme alcohol, weinig hop"],
+    task:"Proef één slok koel, zet het glas dan tien minuten weg en proef opnieuw. Verschijnen Oma's kaneel en rozijnen als het bier opwarmt? Dan heb je haar geheime recept ontfutseld.",
+    reward:"Titel: Taartenridder"
+  },
+  {
+    id:"draak", kind:"bottle", pal:{o:"#241c05",c:"#c9a227",b:"#efeade",h:"#ffffff",l:"#c9a227"},
+    ch:"Hoofdstuk 4", place:"Het Drakennest van Gent", foe:"De Gulden Draak",
+    item:"Brouwerij Van Steenberge — Gulden Draak Calvados",
+    legendary:true,
+    stats:[["Klasse","Quadrupel gerijpt op calvadosvaten"],["Kracht","10,5%"],["Rijping","Gulden Draak 9000 Quadrupel, ongeveer vier tot zes maanden in calvadosvaten"],["Herkomst","Ertvelde, Oost-Vlaanderen"],["Temperatuur","8 tot 12 °C"]],
+    lore:"Boven op het belfort van Gent waakt een gouden draak. Hij sliep maanden in vaten die ooit calvados bevatten, de appelbrandewijn uit Normandië, en werd wakker met appelvuur in zijn adem. Je krijgt twee legendarische drakeneieren mee. Die zijn niet voor de sier.",
+    notes:["Geur: karamel, banaan, honing en een warme gloed van appelbrandewijn","Smaak: steenfruit en gedroogd donker fruit, rijke karamelisatie en zelfs een vleugje suikerspin","Afdronk: warm, met de calvados die langzaam naar voren schuift","Mondgevoel: vol, maar met fijne bubbels die het gewicht optillen"],
+    task:"Ontwaak de drakeneieren: schenk het bier over beide glazen en haal een tweede held naar je tafel. Een draak versla je niet alleen. Proost pas als beide eieren gevuld zijn.",
+    reward:"Set-bonus: Drakeneieren ontwaakt",
+    rest:"Rustpunt: een slimme held slaapt voor hij de kelder van de monniken betreedt."
+  },
+  {
+    id:"trappe", kind:"bottle", pal:{o:"#140c06",c:"#6b4a2a",b:"#3a2413",h:"#6e4a2c",l:"#d8c07a"},
+    ch:"Hoofdstuk 5", place:"De Rookkelder van Koningshoeven", foe:"De Zwijgende Keldermeester",
+    item:"La Trappe — Quadrupel Oak Aged Batch 43",
+    stats:[["Klasse","Trappistenquadrupel op eikenhout"],["Kracht","11%"],["Rijping","Ruim twee jaar op vier soorten vaten: ruim een kwart Laphroaig (geturfde whisky), een tiende Speyside-sherryvat en de rest nieuw eikenhout met medium en high toast"],["Geblend","November 2021"],["Temperatuur","Rond 12 °C"]],
+    lore:"Onder de abdij van Koningshoeven ligt een kelder waar een monnik al jaren zwijgt. Hij liet de quadrupel ruim twee jaar slapen tussen vaten uit Schotland en nieuw eikenhout. De turfrook van Islay kroop in het bier en is er nooit meer uitgegaan.",
+    notes:["Uiterlijk: veel donkerder dan de gewone La Trappe Quadrupel, met een stevige, fijne schuimkraag","Geur: turfrook die je direct in het gezicht slaat, gevolgd door vanille en eikenhout","Smaak: geturfde whisky in harmonie met gedroogd fruit","Karakter: een uitgesproken bier, ook voor de whiskyliefhebber"],
+    task:"Ruik eerst van een afstandje, dan van dichtbij. Lukt het je om de rook van de zachtere sherry- en eikentonen te scheiden? Wie drie lagen kan benoemen, mag de monnik laten glimlachen.",
+    reward:"Vaardigheid: Rookzicht"
+  },
+  {
+    id:"bcbs", kind:"bottle", boss:true, pal:{o:"#000000",c:"#1a1a1a",b:"#0d0d12",h:"#2f2f3d",l:"#8c1d24"},
+    ch:"Eindbaas", place:"De Troonzaal van Chicago", foe:"De Middernachtkoning",
+    item:"Goose Island — Bourbon County Brand Stout 2018",
+    stats:[["Klasse","Imperial stout op bourbonvaten"],["Kracht","15,2%"],["Bitterheid","60 IBU"],["Kleur","Midnight"],["Rijping","Vaten van Heaven Hill-bourbon van vier jaar en ouder"],["Leeftijd","Acht jaar op fles"]],
+    lore:"Ooit, in 1992, brouwde een brouwpub in Chicago een feestbier voor zijn duizendste batch en stopte het in een bourbonvat. Daaruit groeide een koning. Dit exemplaar uit 2018 zit al acht jaar op zijn troon te wachten, en oude koningen worden wijzer, zachter en eigenwijzer.",
+    notes:["Uiterlijk: zo zwart en dicht als een zwart gat, met schuim in de kleur van een bourbonvat","Geur: verkoold eiken, chocolade, vanille, marshmallow en toffee","Smaak: cacao, vanille, karamel, amandel en kers","Diepte: leer en tabak die bij elke slok verder openvouwen","Mondgevoel: zijdezacht en romig"],
+    task:"Laat de koning op adem komen: haal de fles een uur voor het gevecht uit de kelder. Schenk kleine glazen en deel ze. Proef bij elke slok opnieuw of het leer en de tabak naar voren komen, en of acht jaar rijping er gedroogd fruit aan heeft toegevoegd.",
+    reward:"Titel: Middernachtheld"
+  }
+];
+const SIDES = ["appel1","appel2","appel3","kers1","kers2","kers3"];
+const QXP = 100, SXP = 100/3;
+const MAX = Q.length*QXP + 200;
+const LEVELS = [[0,"Dorstige Reiziger"],[100,"Zuurling"],[200,"Heksenjager"],[300,"Taartenridder"],[400,"Drakenbedwinger"],[500,"Rookmagiër"],[600,"Middernachtheld"],[750,"Grootmeester Beer Geek"]];
+
+/* ---------- Opslag ---------- */
+let state = {q:{}, s:{}};
+try{ const raw = localStorage.getItem("bgs-quest"); if(raw) state = Object.assign(state, JSON.parse(raw)); }catch(e){}
+function save(){ try{ localStorage.setItem("bgs-quest", JSON.stringify(state)); }catch(e){} }
+
+/* ---------- Render ---------- */
+const $ = id => document.getElementById(id);
+$("titleSprites").innerHTML = Q.map(q=>sprite(q.kind,q.pal,q.item)).join("") +
+  sprite("egg",{o:"#3a2a05",b:"#d9a520",h:"#ffe38a",s:"#8f6a0e"},"Drakenei-glas");
+
+$("inv").innerHTML = Q.map(q=>`<li>${sprite(q.kind,q.pal,"")}<span><b>${q.item.split(" — ")[1]}</b><br>${q.item.split(" — ")[0]}</span></li>`).join("") +
+  `<li class="leg">${sprite("egg",{o:"#3a2a05",b:"#d9a520",h:"#ffe38a",s:"#8f6a0e"},"")}<span><b>2× Drakenei-kelk</b><br>Legendarisch set-item</span></li>`;
+
+$("route").innerHTML = Q.map(q=>`
+  <li><a class="node" id="node-${q.id}" href="#q-${q.id}">
+    <span class="dot">${sprite(q.kind,q.pal,"")}<span class="check">✓</span></span>
+    <span class="name">${q.place}<small>${q.ch}: ${q.foe}</small></span></a></li>
+  ${q.rest?`<li class="rest"><span class="tent" aria-hidden="true">⛺</span> Rustpunt</li>`:""}`).join("");
+
+$("quests").innerHTML = Q.map(q=>`
+  <article class="win quest ${q.boss?"boss":""}" id="q-${q.id}">
+    <header>${sprite(q.kind,q.pal,q.item)}
+      <div><p class="ch">${q.ch}</p><h2>${q.place}</h2><p class="item">${q.item}</p></div>
+    </header>
+    ${q.boss?`<div class="win-hp" aria-hidden="true"><i></i></div>`:""}
+    <p class="speaker">Tegenstander: ${q.foe}</p>
+    <p>${q.lore}</p>
+    ${q.legendary?`<p>${sprite("egg",{o:"#3a2a05",b:"#d9a520",h:"#ffe38a",s:"#8f6a0e"},"").replace("<svg","<svg style='height:40px;vertical-align:middle;margin-right:8px'")} <em>Legendarisch set-item ontvangen: 2× Drakenei-kelk.</em></p>`:""}
+    <dl class="stats">${q.stats.map(s=>`<dt>${s[0]}</dt><dd>${s[1]}</dd>`).join("")}</dl>
+    <h3>Proefnotities</h3>
+    <ul class="notes">${q.notes.map(n=>`<li>${n}</li>`).join("")}</ul>
+    <div class="task"><strong>Opdracht:</strong> ${q.task}</div>
+    <button class="btn" type="button" data-q="${q.id}" aria-pressed="false">${q.boss?"Versla de eindbaas":"Markeer als verslagen"}</button>
+    <span class="reward">+100 XP, ${q.reward}</span>
+    ${q.rest?`<p style="margin-top:16px">⛺ ${q.rest}</p>`:""}
+  </article>`).join("");
+
+function update(){
+  let xp = 0;
+  Q.forEach(q=>{
+    const done = !!state.q[q.id];
+    if(done) xp += QXP;
+    const b = document.querySelector(`[data-q="${q.id}"]`);
+    b.setAttribute("aria-pressed", done);
+    b.textContent = done ? "Verslagen ✓" : (q.boss?"Versla de eindbaas":"Markeer als verslagen");
+    $("node-"+q.id).classList.toggle("done", done);
+    $("q-"+q.id).classList.toggle("defeated", done);
+  });
+  SIDES.forEach(s=>{ const c=document.querySelector(`[data-side="${s}"]`); c.checked=!!state.s[s]; if(state.s[s]) xp += SXP; });
+  xp = Math.round(xp);
+  let lvl = 1, title = LEVELS[0][1];
+  LEVELS.forEach((l,i)=>{ if(xp>=l[0]){ lvl=i+1; title=l[1]; } });
+  $("lvl").textContent = `LV${lvl} ${title}`;
+  $("xp").textContent = `${xp}/${MAX} XP`;
+  $("fill").style.width = Math.min(100, xp/MAX*100)+"%";
+  $("ending").hidden = !Q.every(q=>state.q[q.id]);
+  return {lvl,title};
+}
+let toastT;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2600); }
+
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-q]");
+  if(!b) return;
+  const id = b.dataset.q, before = update().lvl;
+  state.q[id] = !state.q[id]; save();
+  const after = update();
+  const q = Q.find(x=>x.id===id);
+  if(state.q[id]){
+    toast(after.lvl>before ? `Level up! ${after.title}` : `${q.foe} verslagen!`);
+    if(Q.every(x=>state.q[x.id])) setTimeout(()=>$("ending").scrollIntoView(),600);
+  }
+});
+document.addEventListener("change", e=>{
+  const c = e.target.closest("[data-side]");
+  if(!c) return;
+  const before = update().lvl;
+  state.s[c.dataset.side] = c.checked; save();
+  const after = update();
+  if(c.checked) toast(after.lvl>before ? `Level up! ${after.title}` : "Zijmissie-hint gevonden!");
+});
+$("reset").addEventListener("click", ()=>{
+  if(!confirm("Alle voortgang wissen en opnieuw beginnen?")) return;
+  state = {q:{}, s:{}}; save(); update(); window.scrollTo(0,0);
+});
+update();
+</script>
+</body>
+</html>
